@@ -1,0 +1,143 @@
+import pygame
+import random
+
+# Инициализация Pygame
+pygame.init()
+
+# Определение цветов
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
+
+# Определение размеров экрана
+SCREEN_WIDTH = 288
+SCREEN_HEIGHT = 512
+
+# Создание окна
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Flappy Bird")
+
+# Загрузка изображений
+bird_image = pygame.image.load("bird.png").convert_alpha()
+pipe_image = pygame.image.load("pipe.png").convert_alpha()
+
+# Определение размеров птицы
+BIRD_WIDTH = 34
+BIRD_HEIGHT = 24
+
+# Определение размеров труб
+PIPE_WIDTH = 52
+PIPE_HEIGHT = 320
+
+# Определение скорости птицы и труб
+BIRD_SPEED = 5
+PIPE_SPEED = 3
+
+# Создание птицы
+bird = pygame.Rect(50, SCREEN_HEIGHT/2-BIRD_HEIGHT/2, BIRD_WIDTH, BIRD_HEIGHT)
+
+# Создание труб
+pipes = []
+for i in range(3):
+    top_pipe = pygame.Rect(SCREEN_WIDTH + i*200, random.randint(-200, -50), PIPE_WIDTH, PIPE_HEIGHT)
+    bottom_pipe = pygame.Rect(SCREEN_WIDTH + i*200, top_pipe.bottom + 100, PIPE_WIDTH, PIPE_HEIGHT)
+    pipes.append((top_pipe, bottom_pipe))
+
+# Определение счета
+score = 0
+
+# Отрисовка объектов на экране
+def draw_objects():
+    screen.fill(BLACK)
+    for top_pipe, bottom_pipe in pipes:
+        screen.blit(pipe_image, top_pipe)
+        screen.blit(pygame.transform.flip(pipe_image, False, True), bottom_pipe)
+    screen.blit(bird_image, bird)
+
+    # Отображение счета
+    font = pygame.font.Font(None, 36)
+    score_text = font.render(str(score), True, WHITE)
+    score_rect = score_text.get_rect(center=(SCREEN_WIDTH/2, 50))
+    screen.blit(score_text, score_rect)
+
+# Обновление позиции птицы и труб
+def update_objects():
+    global score
+
+    bird.y += BIRD_SPEED
+
+    for top_pipe, bottom_pipe in pipes:
+        top_pipe.x -= PIPE_SPEED
+        bottom_pipe.x -= PIPE_SPEED
+
+        # Проверка на столкновение с трубами
+        if bird.colliderect(top_pipe) or bird.colliderect(bottom_pipe):
+            game_over()
+
+        # Проверка на прохождение труб
+        if top_pipe.right < bird.left and not top_pipe.collidelist(p[0] for p in pipes):
+            score += 1
+
+        # Перемещение труб за экран
+        if top_pipe.right < 0:
+            top_pipe.left = SCREEN_WIDTH
+            bottom_pipe.left = SCREEN_WIDTH
+            top_pipe.top = random.randint(-200, -50)
+            bottom_pipe.top = top_pipe.bottom + 100
+
+    # Проверка на выход птицы за границы экрана
+    if bird.top < 0 or bird.bottom > SCREEN_HEIGHT:
+        game_over()
+
+# Обработка нажатий клавиш
+def handle_input():
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_SPACE]:
+        bird.y -= 50
+
+# Отображение экрана проигрыша
+def game_over():
+    font = pygame.font.Font(None, 72)
+    game_over_text = font.render("Game Over", True, BLUE)
+    game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+    screen.blit(game_over_text, game_over_rect)
+    pygame.display.flip()
+    pygame.time.wait(2000)
+    reset_game()
+
+# Сброс игры
+def reset_game():
+    global score, bird, pipes
+
+    bird = pygame.Rect(50, SCREEN_HEIGHT/2-BIRD_HEIGHT/2, BIRD_WIDTH, BIRD_HEIGHT)
+
+    pipes = []
+    for i in range(3):
+        top_pipe = pygame.Rect(SCREEN_WIDTH + i*200, random.randint(-200, -50), PIPE_WIDTH, PIPE_HEIGHT)
+        bottom_pipe = pygame.Rect(SCREEN_WIDTH + i*200, top_pipe.bottom + 100, PIPE_WIDTH, PIPE_HEIGHT)
+        pipes.append((top_pipe, bottom_pipe))
+
+    score = 0
+
+# Основной игровой цикл
+def main():
+    clock = pygame.time.Clock()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+        handle_input()
+        update_objects()
+        draw_objects()
+
+        pygame.display.flip()
+        clock.tick(60)
+
+# Запуск игры
+if __name__ == "__main__":
+    main()
+
