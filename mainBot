@@ -1,37 +1,39 @@
-import logging
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+#define PIN_PIR 2
+#define PIN_LED 13
 
-# Устанавливаем уровень логов
-logging.basicConfig(level=logging.INFO)
+#include <Servo.h> // подключаем библиотеку для работы с сервоприводом
 
-# Создаем объект бота
-bot = Bot(token='YOUR_TOKEN_HERE')
+Servo servo1; // объявляем переменную servo типа "servo1"
 
-# Создаем объект диспетчера
-dp = Dispatcher(bot)
 
-# Создаем клавиатуру
-menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-menu_keyboard.add(KeyboardButton('Записаться к врачу'))
-menu_keyboard.add(KeyboardButton('Симптомы'))
-menu_keyboard.add(KeyboardButton('Задать вопрос'))
-menu_keyboard.add(KeyboardButton('Информация'))
-menu_keyboard.add(KeyboardButton('Обратиться в поддержку'))
-menu_keyboard.add(KeyboardButton('Помощь'))
+int counter_people = 0;
 
-# Обработчик команды /start
-@dp.message_handler(commands=['start'])
-async def process_start_command(message: types.Message):
-    await message.reply("Привет! Я эхо-бот. Напиши мне что-нибудь и я отвечу тебе этим же сообщением.", reply_markup=menu_keyboard)
+void setup() {
+  Serial.begin(9600);
 
-# Обработчик всех остальных сообщений
-@dp.message_handler()
-async def echo_message(msg: types.Message):
-    await bot.send_message(msg.chat.id, msg.text, reply_markup=menu_keyboard)
+  pinMode(PIN_PIR, INPUT);
+  pinMode(PIN_LED, OUTPUT);
 
-# Запускаем лонг поллинг
-if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+  servo1.attach(11); // привязываем сервопривод к аналоговому выходу 11
+ 
+}
+
+void loop() {
+  int pirVal = digitalRead(PIN_PIR);
+  Serial.println(digitalRead(PIN_PIR));
+
+  //Если обнаружили движение
+  if (pirVal)
+  {
+    digitalWrite(PIN_LED, HIGH);
+    Serial.println("Замечено движение");
+    delay(2000);
+
+    counter_people++
+  }
+  else
+  {
+    //Serial.print("No motion");
+    digitalWrite(PIN_LED, LOW);
+  }
+}
