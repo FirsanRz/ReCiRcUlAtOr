@@ -5,14 +5,14 @@
 
 Servo servo1; // объявляем переменную servo типа "servo1"
 
-
-int counter_people = 0;
+int n // количество человек при котором включается рециркулятор (можно изменять)
+int counter_people = 0; // вводим переменную-счетчик
 
 void setup() {
   Serial.begin(9600);
 
-  pinMode(PIN_PIR, INPUT);
-  pinMode(PIN_LED, OUTPUT);
+  pinMode(PIN_PIR, INPUT); 
+  pinMode(PIN_LED, OUTPUT); 
 
   servo1.attach(11); // привязываем сервопривод к аналоговому выходу 11
  
@@ -27,13 +27,20 @@ void loop() {
   {
     digitalWrite(PIN_LED, HIGH);
     Serial.println("Замечено движение");
-    delay(2000);
+    delay(2000); // ждем 2 секунды
 
-    counter_people++
+    counter_people++ // добавляем к счетчику по 1
   }
+  // иначе 
   else
   {
     //Serial.print("No motion");
     digitalWrite(PIN_LED, LOW);
+  }
+  if (counter_people >= n) {
+    for (angle = 0; angle <= 360; angle++) {
+      servo.write(angle); // сообщаем микро серво угол поворота
+      delay(20); // ждем 20 мс, пока серво не сделает поворот, изменив число, можно изменить скорость вращения
+    }
   }
 }
